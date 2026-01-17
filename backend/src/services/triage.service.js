@@ -1,59 +1,76 @@
 /**
- * Triage Service
+ * TRIAGE SERVICE
  * ----------------
- * Responsible for determining the severity of a patient case
- * based on reported symptoms.
+ * Determines severity, urgency, and doctor specialization
+ * based on patient symptoms.
+ *
+ * Rule-based & explainable
+ * AI-ready for future upgrade
  */
 
-const CRITICAL_KEYWORDS = [
-  "chest pain",
-  "difficulty breathing",
-  "unconscious",
-  "seizure",
-  "stroke",
-  "severe bleeding",
-];
+const KEYWORDS = {
+  critical: [
+    "chest pain",
+    "difficulty breathing",
+    "unconscious",
+    "seizure",
+    "stroke",
+    "severe bleeding",
+  ],
+  high: [
+    "high fever",
+    "vomiting",
+    "fracture",
+    "head injury",
+    "persistent pain",
+  ],
+  medium: [
+    "moderate pain",
+    "infection",
+    "dizziness",
+    "nausea",
+  ],
+};
 
-const HIGH_KEYWORDS = [
-  "high fever",
-  "vomiting",
-  "fracture",
-  "head injury",
-  "persistent pain",
-];
+const SPECIALIZATION_MAP = {
+  "chest pain": "cardiology",
+  "stroke": "neurology",
+  "seizure": "neurology",
+  "difficulty breathing": "pulmonology",
+  "fracture": "orthopedics",
+  "head injury": "neurology",
+};
 
-const MEDIUM_KEYWORDS = [
-  "moderate pain",
-  "infection",
-  "dizziness",
-  "nausea",
-];
+function analyzeSymptoms(symptoms = "") {
+  const text = symptoms.toLowerCase();
+  let severity = "low";
+  let score = 0;
+  let specialization = "general";
 
-function containsKeyword(text, keywords) {
-  const normalized = text.toLowerCase();
-  return keywords.some((word) => normalized.includes(word));
-}
+  for (const level of ["critical", "high", "medium"]) {
+    for (const keyword of KEYWORDS[level]) {
+      if (text.includes(keyword)) {
+        severity = level;
 
-function determineSeverity(symptoms) {
-  if (!symptoms || symptoms.length < 10) {
-    return "low";
+        if (level === "critical") score = 40;
+        if (level === "high") score = 25;
+        if (level === "medium") score = 15;
+
+        specialization = SPECIALIZATION_MAP[keyword] || specialization;
+        break;
+      }
+    }
+    if (severity !== "low") break;
   }
 
-  if (containsKeyword(symptoms, CRITICAL_KEYWORDS)) {
-    return "critical";
-  }
-
-  if (containsKeyword(symptoms, HIGH_KEYWORDS)) {
-    return "high";
-  }
-
-  if (containsKeyword(symptoms, MEDIUM_KEYWORDS)) {
-    return "medium";
-  }
-
-  return "low";
+  return {
+    severity,
+    score,
+    emergency: severity === "critical",
+    specialization,
+  };
 }
 
 module.exports = {
-  determineSeverity,
+  analyzeSymptoms,
 };
