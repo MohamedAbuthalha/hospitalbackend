@@ -1,15 +1,15 @@
-/**
- * Assignment Routes
- * -----------------
- * Routes for assigning doctors to patient cases
- */
-
 const express = require("express");
 const router = express.Router();
 
 const { assignDoctor } = require("../controllers/assignment.controller");
+const { protect, authorize } = require("../middlewares/auth.middleware");
 
-// POST /api/assign/:caseId
-router.post("/:caseId", assignDoctor);
+
+router.post(
+  "/:patientCaseId",
+  protect,
+  authorize("admin"),
+  assignDoctor
+);
 
 module.exports = router;

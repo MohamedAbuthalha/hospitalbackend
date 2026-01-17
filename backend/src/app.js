@@ -30,6 +30,7 @@ app.use("/api/patients", patientRoutes);
 app.use("/api/doctors", doctorRoutes);
 app.use("/api/triage", triageRoutes);
 app.use("/api/assign", assignmentRoutes);
+app.use("/api/test", require("./routes/test.routes")); 
 
 
 /* -------------------- 404 HANDLER -------------------- */
