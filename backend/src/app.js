@@ -5,6 +5,7 @@ const authRoutes = require("./routes/auth.routes");
 const patientRoutes = require("./routes/patient.routes");
 const doctorRoutes = require("./routes/doctor.routes");
 const triageRoutes = require("./routes/triage.routes");
+const assignmentRoutes = require("./routes/assignment.routes");
 
 
 const app = express();
@@ -28,6 +29,7 @@ app.use("/api/auth", authRoutes);
 app.use("/api/patients", patientRoutes);
 app.use("/api/doctors", doctorRoutes);
 app.use("/api/triage", triageRoutes);
+app.use("/api/assign", assignmentRoutes);
 
 
 /* -------------------- 404 HANDLER -------------------- */
