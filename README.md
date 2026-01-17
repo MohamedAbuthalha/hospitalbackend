@@ -473,6 +473,305 @@ Any future developer or AI can extend this system safely by following existing p
 **Ready for:** Viva, Demo, and Extension
 
 
+# 🏥 Hospital Management System – Backend
+
+A scalable, secure, and modular **Hospital Management Backend API** built with **Node.js, Express, MongoDB**, featuring **JWT authentication**, **role-based access control**, and **AI-ready triage logic**.
+
+This backend is designed to be production-ready and easily extendable by both humans and AI systems.
+
+---
+
+## 📌 Tech Stack
+
+* **Node.js** (v18+ recommended)
+* **Express.js**
+* **MongoDB** (Mongoose ODM)
+* **JWT** (Authentication)
+* **bcryptjs** (Password hashing)
+* **dotenv** (Environment variables)
+* **cors**
+* **nodemon** (development)
+
+---
+
+## 📁 Project Structure
+
+```
+backend/
+│
+├── server.js
+├── .env
+├── package.json
+│
+└── src/
+    ├── app.js
+    │
+    ├── config/
+    │   └── db.js
+    │
+    ├── controllers/
+    │   ├── auth.controller.js
+    │   ├── patient.controller.js
+    │   ├── doctor.controller.js
+    │   └── assignment.controller.js
+    │
+    ├── models/
+    │   ├── User.js
+    │   ├── PatientCase.js
+    │   └── Doctor.js
+    │
+    ├── routes/
+    │   ├── auth.routes.js
+    │   ├── patient.routes.js
+    │   ├── doctor.routes.js
+    │   ├── triage.routes.js
+    │   ├── assignment.routes.js
+    │   └── test.routes.js
+    │
+    ├── services/
+    │   └── triage.service.js
+    │
+    └── middlewares/
+        └── auth.middleware.js
+```
+
+---
+
+## ⚙️ Environment Variables (`.env`)
+
+Create a `.env` file in the `backend` root:
+
+```
+PORT=5000
+MONGO_URI=mongodb://127.0.0.1:27017/hospital_db
+JWT_SECRET=supersecretkey
+NODE_ENV=development
+```
+
+---
+
+## 🚀 How to Run the Project
+
+### 1️⃣ Install dependencies
+
+```
+npm install
+```
+
+### 2️⃣ Start MongoDB
+
+Ensure MongoDB is running locally or update `MONGO_URI`.
+
+### 3️⃣ Run the server
+
+```
+npm run dev
+```
+
+You should see:
+
+```
+🚀 Server running on port 5000
+✅ MongoDB Connected
+```
+
+---
+
+## 🧪 Health Check
+
+```
+GET /health
+```
+
+Response:
+
+```json
+{
+  "status": "OK",
+  "message": "Hospital Management Backend is running"
+}
+```
+
+---
+
+## 🔐 Authentication (Phase 6 – Completed)
+
+### Register
+
+```
+POST /api/auth/register
+```
+
+Body (JSON):
+
+```json
+{
+  "name": "Admin User",
+  "email": "admin@test.com",
+  "password": "password123",
+  "role": "admin"
+}
+```
+
+---
+
+### Login
+
+```
+POST /api/auth/login
+```
+
+Response:
+
+```json
+{
+  "token": "<JWT_TOKEN>",
+  "user": {
+    "id": "...",
+    "role": "admin"
+  }
+}
+```
+
+---
+
+### 🔑 Using JWT Token (IMPORTANT)
+
+For protected routes, add **Header**:
+
+```
+Authorization: Bearer <PASTE_TOKEN_HERE>
+```
+
+No body is required unless the endpoint specifies it.
+
+---
+
+## 🛡️ Protected Route Test
+
+```
+GET /api/test
+```
+
+Headers:
+
+```
+Authorization: Bearer <JWT_TOKEN>
+```
+
+Response:
+
+```json
+{
+  "success": true,
+  "message": "Token is valid",
+  "user": {
+    "id": "...",
+    "role": "admin"
+  }
+}
+```
+
+---
+
+## 🧠 AI-Ready Triage System (Phase 3 – Completed)
+
+### Endpoint
+
+```
+POST /api/patients
+```
+
+Body:
+
+```json
+{
+  "name": "John Doe",
+  "age": 45,
+  "gender": "male",
+  "symptoms": "chest pain and difficulty breathing"
+}
+```
+
+Automatically determines:
+
+* severity (`low | medium | high | critical`)
+* emergency flag
+* doctor specialization
+
+---
+
+## 🏥 Core Features Implemented
+
+✅ Patient case creation
+✅ Rule-based triage engine
+✅ Doctor specialization mapping
+✅ MongoDB schema validation
+✅ JWT authentication
+✅ Password hashing
+✅ Role decoding
+✅ Route protection middleware
+✅ Modular architecture
+
+---
+
+## 🧩 Pending Phases (Clearly Defined)
+
+### 🔜 Phase 6.1 – Role-Based Route Enforcement
+
+* Admin-only doctor creation
+* Admin-only assignment
+* Doctor-only patient views
+
+### 🔜 Phase 7 – Assignment Logic
+
+* Auto-assign doctors based on triage
+* Doctor availability checks
+* Load balancing
+
+### 🔜 Phase 8 – Advanced Features
+
+* Pagination & filtering
+* Audit logs
+* Rate limiting
+* API versioning
+* Swagger / OpenAPI docs
+
+### 🔜 Phase 9 – Frontend Integration
+
+* React / Next.js frontend
+* Admin dashboard
+* Doctor panel
+* Patient portal
+
+---
+
+## 🤝 Contribution & Continuation Notes
+
+* Uses **CommonJS** (`require`)
+* Folder name is **middlewares** (plural)
+* JWT logic centralized in `auth.middleware.js`
+* Business logic isolated from controllers
+* Safe for AI continuation without refactor
+
+---
+
+## 🧠 Final Notes
+
+This backend is:
+
+* **Not a tutorial project**
+* **Production-aligned**
+* **AI-extensible**
+* **Secure by default**
+
+You are free to extend without breaking architecture.
+
+---
+
+🔥 Built with discipline, clarity, and future-proofing.
+
+
 
 git add .
 git commit -m "4th commit"
