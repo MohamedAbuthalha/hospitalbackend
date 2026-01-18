@@ -6,10 +6,15 @@ const {
   getAllPatientCases,
 } = require("../controllers/patient.controller");
 
-// Create new patient case
+const {
+  protect,
+  authorize,
+} = require("../middlewares/auth.middleware");
+
+// Public: patients can create case
 router.post("/", createPatientCase);
 
-// Get all patient cases
-router.get("/", getAllPatientCases);
+// Admin + Doctor can view all cases
+router.get("/", protect, authorize("admin", "doctor"), getAllPatientCases);
 
 module.exports = router;

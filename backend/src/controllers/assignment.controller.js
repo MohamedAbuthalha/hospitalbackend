@@ -1,16 +1,10 @@
-/**
- * Assignment Controller
- * ----------------------
- * Handles HTTP requests related to doctor assignment
- */
-
 const { assignDoctorToCase } = require("../services/assignment.service");
 
 /**
  * Assign a doctor to a patient case
  * POST /api/assign/:caseId
  */
-async function assignDoctor(req, res) {
+async function assignDoctorToCaseController(req, res) {
   try {
     const { caseId } = req.params;
 
@@ -39,5 +33,5 @@ async function assignDoctor(req, res) {
 }
 
 module.exports = {
-  assignDoctor,
+  assignDoctorToCase: assignDoctorToCaseController,
 };

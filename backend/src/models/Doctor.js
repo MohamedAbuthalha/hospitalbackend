@@ -10,26 +10,21 @@ const doctorSchema = new mongoose.Schema(
 
     specialization: {
       type: String,
-      enum: [
-        "general",
-        "cardiology",
-        "neurology",
-        "orthopedics",
-        "pediatrics",
-        "emergency",
-      ],
       required: true,
+      trim: true,
+      lowercase: true, // ✅ CRITICAL FIX (this unblocks auto-assignment)
     },
 
     experience: {
-      type: Number, // years
-      default: 0,
+      type: Number,
+      required: true,
       min: 0,
     },
 
-    available: {
-      type: Boolean,
-      default: true,
+    maxCases: {
+      type: Number,
+      default: 5,
+      min: 1,
     },
 
     activeCases: {
@@ -38,13 +33,15 @@ const doctorSchema = new mongoose.Schema(
       min: 0,
     },
 
-    maxCases: {
-      type: Number,
-      default: 5, // configurable per doctor
-      min: 1,
+    user: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      required: true,
+      unique: true, // one user → one doctor profile
     },
   },
   { timestamps: true }
 );
 
-module.exports = mongoose.model("Doctor", doctorSchema);
+module.exports =
+  mongoose.models.Doctor || mongoose.model("Doctor", doctorSchema);

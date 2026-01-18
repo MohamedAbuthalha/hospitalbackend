@@ -1,15 +1,46 @@
 const express = require("express");
 const router = express.Router();
 
-const doctorController = require("../controllers/doctor.controller");
+const {
+  getMyAssignedCases,
+  updateCaseStatus,
+  getDoctorDashboard,
+  createDoctorProfile,
+} = require("../controllers/doctor.controller");
 
-// GET all doctors
-router.get("/", doctorController.getAllDoctors);
+const { protect, authorize } = require("../middlewares/auth.middleware");
 
-// GET doctors by specialization
-router.get("/specialization/:specialization", doctorController.getDoctorsBySpecialization);
+// Create doctor profile
+router.post(
+  "/profile",
+  protect,
+  authorize("doctor"),
+  createDoctorProfile
+);
 
-// CREATE a new doctor (admin later)
-router.post("/", doctorController.createDoctor);
+
+// Dashboard
+router.get(
+  "/dashboard",
+  protect,
+  authorize("doctor"),
+  getDoctorDashboard
+);
+
+// My cases
+router.get(
+  "/cases/my",
+  protect,
+  authorize("doctor"),
+  getMyAssignedCases
+);
+
+// Update case status
+router.patch(
+  "/cases/:caseId/status",
+  protect,
+  authorize("doctor"),
+  updateCaseStatus
+);
 
 module.exports = router;

@@ -15,20 +15,26 @@ const userSchema = new mongoose.Schema(
       unique: true,
       lowercase: true,
       trim: true,
-      match: [/^\S+@\S+\.\S+$/, "Please use a valid email address"],
+      match: [/^\S+@\S+\.\S+$/, "Please provide a valid email"],
     },
 
     password: {
       type: String,
       required: [true, "Password is required"],
       minlength: 6,
-      select: false, // VERY IMPORTANT (security)
+      select: false,
     },
 
     role: {
       type: String,
-      enum: ["patient", "doctor", "admin"],
-      default: "patient",
+      enum: ["admin", "doctor"],
+      default: "doctor",
+    },
+
+    doctorProfile: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Doctor",
+      default: null,
     },
 
     isActive: {
@@ -36,28 +42,18 @@ const userSchema = new mongoose.Schema(
       default: true,
     },
   },
-  {
-    timestamps: true, // createdAt & updatedAt
-  }
+  { timestamps: true }
 );
 
-//
-// 🔐 PASSWORD HASHING (before saving)
-//
+// 🔐 Hash password before saving
 userSchema.pre("save", async function () {
-  // Only hash if password is modified
   if (!this.isModified("password")) return;
-
-  const salt = await bcrypt.genSalt(12);
-  this.password = await bcrypt.hash(this.password, salt);
+  this.password = await bcrypt.hash(this.password, 12);
 });
 
-
-//
-// 🔑 PASSWORD COMPARISON (login)
-//
-userSchema.methods.comparePassword = async function (enteredPassword) {
-  return await bcrypt.compare(enteredPassword, this.password);
+// 🔑 Compare password during login
+userSchema.methods.comparePassword = function (enteredPassword) {
+  return bcrypt.compare(enteredPassword, this.password);
 };
 
 module.exports = mongoose.model("User", userSchema);

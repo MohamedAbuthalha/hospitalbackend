@@ -1,15 +1,21 @@
 const express = require("express");
 const router = express.Router();
 
-const { assignDoctor } = require("../controllers/assignment.controller");
-const { protect, authorize } = require("../middlewares/auth.middleware");
+const {
+  assignDoctorToCase,
+} = require("../controllers/assignment.controller");
 
+const {
+  protect,
+  authorize,
+} = require("../middlewares/auth.middleware");
 
+// ADMIN assigns doctor to patient case
 router.post(
-  "/:patientCaseId",
+  "/:caseId",
   protect,
   authorize("admin"),
-  assignDoctor
+  assignDoctorToCase
 );
 
 module.exports = router;

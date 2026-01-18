@@ -10,15 +10,25 @@ const patientCaseSchema = new mongoose.Schema(
       required: true,
     },
     symptoms: { type: String, required: true },
+
     severity: {
       type: String,
       enum: ["low", "medium", "high", "critical"],
       required: true,
     },
+
     specialization: {
       type: String,
       required: true,
+      lowercase: true,
     },
+
+    assignedDoctor: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Doctor",
+      default: null,
+    },
+
     status: {
       type: String,
       enum: ["waiting", "assigned", "in-treatment", "completed"],
@@ -29,3 +39,5 @@ const patientCaseSchema = new mongoose.Schema(
 );
 
 module.exports = mongoose.model("PatientCase", patientCaseSchema);
+
+

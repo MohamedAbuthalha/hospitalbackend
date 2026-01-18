@@ -1,19 +1,7 @@
-/**
- * Assignment Service
- * -------------------
- * Responsible for assigning doctors to patient cases
- * using specialization + workload balancing.
- */
-
 const Doctor = require("../models/Doctor");
 const PatientCase = require("../models/PatientCase");
 
-/**
- * Assign the best available doctor to a patient case
- * @param {string} caseId - PatientCase ID
- */
 async function assignDoctorToCase(caseId) {
-  // 1. Fetch patient case
   const patientCase = await PatientCase.findById(caseId);
 
   if (!patientCase) {
@@ -24,35 +12,28 @@ async function assignDoctorToCase(caseId) {
     throw new Error("Patient case is already assigned or completed");
   }
 
-  // 2. Determine required specialization
-  // Simple mapping (can evolve later)
-  let requiredSpecialization = "general";
+  // ✅ Use triage-decided specialization
+  const requiredSpecialization = patientCase.specialization;
 
-  if (patientCase.severity === "critical") {
-    requiredSpecialization = "emergency";
-  } else if (patientCase.severity === "high") {
-    requiredSpecialization = "cardiology";
-  }
-
-  // 3. Find best available doctor
   const doctor = await Doctor.findOne({
     specialization: requiredSpecialization,
     available: true,
-    $expr: { $lt: ["$activeCases", "$maxCases"] },
-  }).sort({ activeCases: 1, experience: -1 });
+    $expr: { $lt: ["$currentPatients", "$maxPatients"] },
+  }).sort({ currentPatients: 1 });
 
   if (!doctor) {
-    throw new Error("No available doctor found for this case");
+    throw new Error("No available doctor found for this specialization");
   }
 
-  // 4. Assign doctor to patient case
   patientCase.status = "assigned";
   patientCase.assignedDoctor = doctor._id;
 
-  // 5. Update doctor workload
-  doctor.activeCases += 1;
+  doctor.currentPatients += 1;
 
-  // 6. Save both documents (transaction-safe style)
+  if (doctor.currentPatients >= doctor.maxPatients) {
+    doctor.available = false;
+  }
+
   await Promise.all([patientCase.save(), doctor.save()]);
 
   return {
@@ -65,6 +46,4 @@ async function assignDoctorToCase(caseId) {
   };
 }
 
-module.exports = {
-  assignDoctorToCase,
-};
+module.exports = { assignDoctorToCase };

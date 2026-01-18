@@ -7,11 +7,17 @@ const doctorRoutes = require("./routes/doctor.routes");
 const triageRoutes = require("./routes/triage.routes");
 const assignmentRoutes = require("./routes/assignment.routes");
 
-
 const app = express();
 
 /* -------------------- MIDDLEWARE -------------------- */
-app.use(cors());
+app.use(
+  cors({
+    origin: "*",
+    methods: ["GET", "POST", "PUT", "PATCH", "DELETE"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+  })
+);
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
@@ -30,11 +36,14 @@ app.use("/api/patients", patientRoutes);
 app.use("/api/doctors", doctorRoutes);
 app.use("/api/triage", triageRoutes);
 app.use("/api/assign", assignmentRoutes);
-app.use("/api/test", require("./routes/test.routes")); 
 
+
+if (process.env.NODE_ENV !== "production") {
+  app.use("/api/test", require("./routes/test.routes"));
+}
 
 /* -------------------- 404 HANDLER -------------------- */
-app.use((req, res, next) => {
+app.use((req, res) => {
   res.status(404).json({
     success: false,
     message: `Route not found: ${req.originalUrl}`,

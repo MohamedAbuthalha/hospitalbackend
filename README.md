@@ -39,34 +39,34 @@ This mimics **real hospital triage workflows**.
 
 ## 🗂️ Project Structure
 
-```
-backend/
-│
-├── server.js
-├── .env
-├── package.json
-├── README.md
-│
-└── src/
-    ├── app.js
-    │
-    ├── config/
-    │   └── db.js
-    │
-    ├── models/
-    │   └── PatientCase.js
-    │
-    ├── controllers/
-    │   └── patient.controller.js
-    │
-    ├── routes/
-    │   └── patient.routes.js
-    │
-    └── services/
-        └── triage.service.js
-```
-
----
+hospital-management-system/
+└── backend/
+    ├── src/
+    │   ├── config/
+    │   │   └── db.js
+    │   ├── controllers/
+    │   │   ├── appointmentController.js
+    │   │   ├── authController.js
+    │   │   ├── patientController.js
+    │   │   └── staffController.js
+    │   ├── middlewares/
+    │   │   ├── authMiddleware.js
+    │   │   └── errorMiddleware.js
+    │   ├── models/
+    │   │   ├── Appointment.js
+    │   │   ├── Patient.js
+    │   │   └── User.js
+    │   ├── routes/
+    │   │   ├── appointmentRoutes.js
+    │   │   ├── authRoutes.js
+    │   │   └── patientRoutes.js
+    │   └── services/
+    │       ├── notificationService.js
+    │       └── validationService.js
+    ├── .env
+    ├── .gitignore
+    ├── package.json
+    └── server.js
 
 ## 📦 Packages & Technologies Used
 
@@ -472,6 +472,265 @@ Any future developer or AI can extend this system safely by following existing p
 **Status:** Stable & Feature-Complete for Phase 1
 **Ready for:** Viva, Demo, and Extension
 
+5th commit 
+
+
+
+
+# 🏥 Hospital Management System – Backend Progress Report
+
+This document summarizes **what has been completed**, **what is stable**, and **what remains pending**, so that development can continue safely without breaking existing functionality.
+
+---
+
+## 📌 Project Overview
+
+A Node.js + Express + MongoDB backend for a hospital management system with:
+
+* User authentication
+* Doctor profiles
+* Patient case intake
+* AI-based triage
+* Automatic doctor assignment based on workload & specialization
+
+---
+
+## ✅ COMPLETED PHASES (STABLE & WORKING)
+
+### 1️⃣ Authentication & Authorization
+
+**Status: DONE**
+
+* JWT-based authentication
+* `protect` middleware ensures logged-in users
+* `authorize("doctor")` role-based access control
+* Each doctor profile is **linked to exactly one user**
+
+📁 Key files:
+
+* `middlewares/auth.middleware.js`
+* `models/User.js`
+
+---
+
+### 2️⃣ Doctor Profile Management
+
+**Status: DONE**
+
+Each doctor:
+
+* Is created **once per user**
+* Has a specialization
+* Has workload limits
+
+**Doctor Schema**
+
+```js
+{
+  name,
+  specialization,
+  experience,
+  maxCases,
+  activeCases,
+  user (required, unique)
+}
+```
+
+✔ Prevents duplicate doctor profiles
+✔ Ensures referential integrity with User
+
+📁 Files:
+
+* `models/Doctor.js`
+* `controllers/doctor.controller.js`
+* `routes/doctor.routes.js`
+
+---
+
+### 3️⃣ Patient Case Creation
+
+**Status: DONE**
+
+Patient case intake includes:
+
+* Name, age, gender, symptoms
+* AI triage for:
+
+  * `severity`
+  * `required specialization`
+
+**PatientCase fields**
+
+```js
+{
+  name,
+  age,
+  gender,
+  symptoms,
+  severity,
+  specialization,
+  assignedDoctor,
+  status
+}
+```
+
+📁 Files:
+
+* `models/PatientCase.js`
+* `controllers/patient.controller.js`
+
+---
+
+### 4️⃣ AI Triage System
+
+**Status: DONE (basic rules-based)**
+
+* `analyzeSymptoms(symptoms)` determines:
+
+  * Severity (low / medium / critical)
+  * Required doctor specialization
+
+📁 File:
+
+* `services/triage.service.js`
+
+---
+
+### 5️⃣ 🚀 Automatic Doctor Assignment (CORE FEATURE)
+
+**Status: DONE & VERIFIED**
+
+This is the **most critical completed feature**.
+
+#### Logic:
+
+1. Match doctors by specialization
+2. Exclude doctors at full capacity
+3. Sort by:
+
+   * Least `activeCases`
+   * Highest `experience`
+4. Assign patient case
+5. Increment doctor workload
+
+✔ Assignment happens **immediately after case creation**
+✔ Handles “no doctor available” gracefully
+
+📁 File:
+
+* `services/autoAssign.service.js`
+
+#### Verified Output Example:
+
+```json
+"status": "assigned",
+"assignedDoctor": "696c7643d311e2ddbf59a4a4"
+```
+
+---
+
+## 🧠 IMPORTANT DESIGN DECISIONS (DO NOT BREAK)
+
+⚠️ These rules **must be preserved**:
+
+* `Doctor.user` is **required**
+* Doctor workload is tracked using `activeCases`
+* Auto-assign runs **after patient case creation**
+* Old cases are **not auto-reassigned retroactively**
+* Specialization matching is **case-sensitive normalized**
+
+---
+
+## ❌ COMMON PITFALLS (ALREADY FIXED)
+
+* ❌ Calling `autoAssignDoctor` inside `Model.create()`
+* ❌ Duplicate `mongoose` imports
+* ❌ Comparing Mongo fields directly (`$lt: "$maxCases"`)
+* ❌ Creating doctors without linked users
+* ❌ Expecting old patient cases to auto-assign
+
+---
+
+## 🕒 PENDING PHASES (NEXT STEPS)
+
+### 🔜 Phase 6: Doctor Case Completion
+
+* Doctor marks case as `completed`
+* Decrement `activeCases`
+* Trigger reassignment from waiting queue
+
+---
+
+### 🔜 Phase 7: Waiting Queue System
+
+* If no doctor available:
+
+  * Keep case in `waiting`
+* Auto-assign when capacity frees up
+
+---
+
+### 🔜 Phase 8: Doctor Dashboard
+
+* View assigned cases
+* Update case status
+* View workload metrics
+
+---
+
+### 🔜 Phase 9: Admin Controls
+
+* View all doctors & workloads
+* Override assignments
+* Disable doctors temporarily
+
+---
+
+### 🔜 Phase 10: Advanced AI Triage (Optional)
+
+* ML/NLP-based symptom analysis
+* Priority weighting by severity
+
+---
+
+## 🧪 Current System State
+
+**Stable & Production-Ready for Core Flow**
+
+✔ User → Doctor Profile
+✔ Patient → Case Creation
+✔ AI → Severity & Specialization
+✔ System → Doctor Assignment
+
+No breaking changes expected if pending phases are added correctly.
+
+---
+
+## 🏁 Final Note for Next Developer / AI
+
+This system has a **clean separation of concerns**:
+
+* Controllers = orchestration
+* Services = business logic
+* Models = data integrity
+
+👉 Do **NOT** merge logic across layers
+👉 Always respect doctor workload constraints
+
+You can safely continue from **Phase 6** without refactoring existing code.
+
+---
+
+**Status:** ✅ CORE SYSTEM COMPLETE
+**Next Focus:** Workflow automation & dashboards
+
+
+
+
+
+
+
+
 
 # 🏥 Hospital Management System – Backend
 
@@ -774,6 +1033,6 @@ You are free to extend without breaking architecture.
 
 
 git add .
-git commit -m "4th commit"
+git commit -m "5th commit"
 git push origin main
 
