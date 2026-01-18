@@ -1,6 +1,8 @@
 const PatientCase = require("../models/PatientCase");
 const { analyzeSymptoms } = require("../services/triage.service");
 const { autoAssignDoctor } = require("../services/autoAssign.service");
+const { assignNextWaitingCase } = require("../services/waitingQueue.service");
+
 
 /**
  * POST /api/patients
@@ -70,3 +72,30 @@ exports.getAllPatientCases = async (req, res) => {
     });
   }
 };
+
+const completeCase = require("../services/completeCase.service");
+
+exports.completePatientCase = async (req, res) => {
+  try {
+    const patientCase = await completeCase({
+      caseId: req.params.id,
+      doctorUserId: req.user.id,
+    });
+
+    res.status(200).json({
+      success: true,
+      message: "Case completed successfully",
+      caseId: patientCase._id,
+    });
+
+  } catch (error) {
+    res.status(400).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+
+    
+  
