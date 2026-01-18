@@ -35,9 +35,9 @@ Instead of storing patient data blindly, this system:
 
 This mimics **real hospital triage workflows**.
 
+## 🗂️ Project Structure
 ---
 
-## 🗂️ Project Structure
 
 hospital-management-system/
 └── backend/
@@ -67,6 +67,10 @@ hospital-management-system/
     ├── .gitignore
     ├── package.json
     └── server.js
+
+
+    ---
+
 
 ## 📦 Packages & Technologies Used
 
