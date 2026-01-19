@@ -1,23 +1,11 @@
 const express = require("express");
 const router = express.Router();
 
-const {
-  register,
-  login,
-} = require("../controllers/auth.controller");
+const authController = require("../controllers/auth.controller");
 
-/**
- * @route   POST /api/auth/register
- * @desc    Register new user (patient / doctor / admin)
- * @access  Public
- */
-router.post("/register", register);
+console.log("AUTH CONTROLLER EXPORTS:", authController);
 
-/**
- * @route   POST /api/auth/login
- * @desc    Login user
- * @access  Public
- */
-router.post("/login", login);
+router.post("/register", authController.register);
+router.post("/login", authController.login);
 
 module.exports = router;

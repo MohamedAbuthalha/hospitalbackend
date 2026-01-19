@@ -1,14 +1,24 @@
 const PatientCase = require("../models/PatientCase");
+const Doctor = require("../models/Doctor");
+const User = require("../models/User");
 
 /**
  * GET /api/doctors/cases/my
  */
 exports.getMyAssignedCases = async (req, res) => {
   try {
+    // Role safety
+    if (req.user.role !== "doctor") {
+      return res.status(403).json({
+        success: false,
+        message: "Access denied",
+      });
+    }
+
     if (!req.user.doctorProfile) {
       return res.status(400).json({
         success: false,
-        message: "Doctor profile not linked to this account",
+        message: "Doctor profile not linked",
       });
     }
 
@@ -22,6 +32,7 @@ exports.getMyAssignedCases = async (req, res) => {
       count: cases.length,
       data: cases,
     });
+
   } catch (error) {
     res.status(500).json({
       success: false,
@@ -29,6 +40,7 @@ exports.getMyAssignedCases = async (req, res) => {
     });
   }
 };
+
 
 /**
  * PATCH /api/doctors/cases/:caseId/status
@@ -64,14 +76,31 @@ exports.updateCaseStatus = async (req, res) => {
       });
     }
 
+    // Prevent duplicate updates
+    if (patientCase.status === status) {
+      return res.status(400).json({
+        success: false,
+        message: "Status already updated",
+      });
+    }
+
     patientCase.status = status;
     await patientCase.save();
 
+    // 🔥 Reduce doctor workload when completed
+    if (status === "completed") {
+      await Doctor.findByIdAndUpdate(
+        req.user.doctorProfile,
+        { $inc: { activeCases: -1 } }
+      );
+    }
+
     res.status(200).json({
       success: true,
-      message: "Status updated",
+      message: "Case status updated successfully",
       data: patientCase,
     });
+
   } catch (error) {
     res.status(500).json({
       success: false,
@@ -83,10 +112,16 @@ exports.updateCaseStatus = async (req, res) => {
 
 /**
  * GET /api/doctors/dashboard
- * Doctor dashboard summary + cases
  */
 exports.getDoctorDashboard = async (req, res) => {
   try {
+    if (req.user.role !== "doctor") {
+      return res.status(403).json({
+        success: false,
+        message: "Access denied",
+      });
+    }
+
     if (!req.user.doctorProfile) {
       return res.status(400).json({
         success: false,
@@ -94,12 +129,10 @@ exports.getDoctorDashboard = async (req, res) => {
       });
     }
 
-    const doctorId = req.user.doctorProfile;
-
     const cases = await PatientCase.find({
-      assignedDoctor: doctorId,
+      assignedDoctor: req.user.doctorProfile,
     }).sort({
-      severity: -1,      // critical first
+      severity: -1,
       createdAt: -1,
     });
 
@@ -115,6 +148,7 @@ exports.getDoctorDashboard = async (req, res) => {
       stats,
       cases,
     });
+
   } catch (error) {
     console.error("Dashboard error:", error);
     res.status(500).json({
@@ -123,59 +157,5 @@ exports.getDoctorDashboard = async (req, res) => {
     });
   }
 };
-
-// controllers/doctor.controller.js
-const Doctor = require("../models/Doctor");
-const User = require("../models/User");
-
-exports.createDoctorProfile = async (req, res) => {
-  try {
-    const { name, specialization, experience, maxCases } = req.body;
-
-    // 1️⃣ Ensure logged-in user
-    const user = await User.findById(req.user._id);
-
-    if (!user) {
-      return res.status(404).json({
-        success: false,
-        message: "User not found",
-      });
-    }
-
-    // 2️⃣ Prevent duplicate doctor profile
-    if (user.doctorProfile) {
-      return res.status(400).json({
-        success: false,
-        message: "Doctor profile already exists",
-      });
-    }
-
-    // 3️⃣ Create doctor profile
-    const doctor = await Doctor.create({
-      name,
-      specialization,
-      experience,
-      maxCases,
-      user: user._id,
-    });
-
-    // 4️⃣ Link doctor profile to user
-    user.doctorProfile = doctor._id;
-    await user.save();
-
-    res.status(201).json({
-      success: true,
-      message: "Doctor profile created successfully",
-      data: doctor,
-    });
-  } catch (error) {
-    console.error("❌ Create doctor profile error:", error);
-
-    res.status(500).json({
-      success: false,
-      message: "Failed to create doctor profile",
-    });
-  }
-};
-
+   
 

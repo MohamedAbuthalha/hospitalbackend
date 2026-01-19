@@ -1,8 +1,10 @@
+
+
 const jwt = require("jsonwebtoken");
 const User = require("../models/User");
 
 /**
- * 🔐 Generate JWT Token
+ * Generate JWT
  */
 const generateToken = (userId) => {
   return jwt.sign(
@@ -13,15 +15,12 @@ const generateToken = (userId) => {
 };
 
 /**
- * @desc    Register new user (Patient / Doctor / Admin)
- * @route   POST /api/auth/register
- * @access  Public
+ * REGISTER FIRST ADMIN ONLY
  */
 exports.register = async (req, res) => {
   try {
-    const { name, email, password, role } = req.body;
+    const { name, email, password } = req.body;
 
-    // 1️⃣ Validation
     if (!name || !email || !password) {
       return res.status(400).json({
         success: false,
@@ -29,27 +28,24 @@ exports.register = async (req, res) => {
       });
     }
 
-    // 2️⃣ Check existing user
-    const userExists = await User.findOne({ email });
-    if (userExists) {
-      return res.status(409).json({
+    const adminExists = await User.findOne({ role: "admin" });
+    if (adminExists) {
+      return res.status(403).json({
         success: false,
-        message: "User already exists with this email",
+        message: "Public registration disabled",
       });
     }
 
-    // 3️⃣ Create user
     const user = await User.create({
       name,
       email,
       password,
-      role, // optional, defaults to patient
+      role: "admin",
     });
 
-    // 4️⃣ Send response
     res.status(201).json({
       success: true,
-      message: "User registered successfully",
+      message: "Admin created",
       token: generateToken(user._id),
       user: {
         id: user._id,
@@ -59,42 +55,38 @@ exports.register = async (req, res) => {
       },
     });
 
-  } catch (error) {
-    console.error(error);
+  } catch (err) {
+    console.error("Register error:", err);
     res.status(500).json({
       success: false,
-      message: "Server error during registration",
+      message: "Registration failed",
     });
   }
 };
 
 /**
- * @desc    Login user
- * @route   POST /api/auth/login
- * @access  Public
+ * LOGIN
  */
 exports.login = async (req, res) => {
   try {
     const { email, password } = req.body;
 
-    // 1️⃣ Validation
     if (!email || !password) {
       return res.status(400).json({
         success: false,
-        message: "Email and password are required",
+        message: "Email and password required",
       });
     }
 
-    // 2️⃣ Find user (explicitly select password)
     const user = await User.findOne({ email }).select("+password");
-    if (!user) {
+
+    if (!user || !user.isActive) {
       return res.status(401).json({
         success: false,
         message: "Invalid credentials",
       });
     }
 
-    // 3️⃣ Compare password
     const isMatch = await user.comparePassword(password);
     if (!isMatch) {
       return res.status(401).json({
@@ -103,7 +95,6 @@ exports.login = async (req, res) => {
       });
     }
 
-    // 4️⃣ Success
     res.status(200).json({
       success: true,
       message: "Login successful",
@@ -116,11 +107,11 @@ exports.login = async (req, res) => {
       },
     });
 
-  } catch (error) {
-    console.error(error);
+  } catch (err) {
+    console.error("Login error:", err);
     res.status(500).json({
       success: false,
-      message: "Server error during login",
+      message: "Login failed",
     });
   }
 };

@@ -24,12 +24,13 @@ const userSchema = new mongoose.Schema(
       minlength: 6,
       select: false,
     },
+role: {
+  type: String,
+  enum: ["admin", "doctor", "nurse", "lab", "pharmacist", "ward"],
+  required: true,
+},
 
-    role: {
-      type: String,
-      enum: ["admin", "doctor"],
-      default: "doctor",
-    },
+
 
     doctorProfile: {
       type: mongoose.Schema.Types.ObjectId,

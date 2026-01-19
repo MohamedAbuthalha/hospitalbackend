@@ -5,18 +5,13 @@ const {
   getMyAssignedCases,
   updateCaseStatus,
   getDoctorDashboard,
-  createDoctorProfile,
 } = require("../controllers/doctor.controller");
+
 
 const { protect, authorize } = require("../middlewares/auth.middleware");
 
 // Create doctor profile
-router.post(
-  "/profile",
-  protect,
-  authorize("doctor"),
-  createDoctorProfile
-);
+
 
 
 // Dashboard

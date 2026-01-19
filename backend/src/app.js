@@ -6,6 +6,7 @@ const patientRoutes = require("./routes/patient.routes");
 const doctorRoutes = require("./routes/doctor.routes");
 const triageRoutes = require("./routes/triage.routes");
 const assignmentRoutes = require("./routes/assignment.routes");
+const adminRoutes = require("./routes/admin.routes");
 
 const app = express();
 
@@ -36,6 +37,9 @@ app.use("/api/patients", patientRoutes);
 app.use("/api/doctors", doctorRoutes);
 app.use("/api/triage", triageRoutes);
 app.use("/api/assign", assignmentRoutes);
+app.use("/api/admin", adminRoutes);
+app.use("/api/staff", require("./routes/staff.routes"));
+
 
 
 if (process.env.NODE_ENV !== "production") {
