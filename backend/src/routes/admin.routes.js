@@ -7,7 +7,9 @@ const {
   getAllStaff,
 } = require("../controllers/admin.controller");
 
-const { protect, authorize } = require("../middlewares/auth.middleware");
+const { protect } = require("../middlewares/auth.middleware");
+const { authorize } = require("../middlewares/role.middleware");
+
 
 router.post("/doctors", protect, authorize("admin"), createDoctor);
 router.post("/staff", protect, authorize("admin"), createStaff);

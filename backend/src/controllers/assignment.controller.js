@@ -1,37 +1,30 @@
-const { assignDoctorToCase } = require("../services/assignment.service");
+const PatientCase = require("../models/PatientCase");
+const DoctorProfile = require("../models/DoctorProfile");
 
-/**
- * Assign a doctor to a patient case
- * POST /api/assign/:caseId
- */
-async function assignDoctorToCaseController(req, res) {
+const assignDoctorManually = async (req, res) => {
   try {
     const { caseId } = req.params;
+    const { doctorId } = req.body;
 
-    if (!caseId) {
-      return res.status(400).json({
-        success: false,
-        message: "Patient case ID is required",
-      });
+    const patientCase = await PatientCase.findById(caseId);
+    if (!patientCase) {
+      return res.status(404).json({ message: "Case not found" });
     }
 
-    const result = await assignDoctorToCase(caseId);
+    patientCase.assignedDoctor = doctorId;
+    patientCase.status = "assigned";
+    await patientCase.save();
 
-    return res.status(200).json({
-      success: true,
-      message: result.message,
-      data: result.doctor,
+    await DoctorProfile.findByIdAndUpdate(doctorId, {
+      $inc: { activeCases: 1 },
     });
-  } catch (error) {
-    console.error("Doctor assignment error:", error.message);
 
-    return res.status(500).json({
-      success: false,
-      message: error.message || "Failed to assign doctor",
-    });
+    res.json({ success: true, patientCase });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
   }
-}
+};
 
 module.exports = {
-  assignDoctorToCase: assignDoctorToCaseController,
+  assignDoctorManually,
 };

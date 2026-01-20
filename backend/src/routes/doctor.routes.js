@@ -5,14 +5,11 @@ const {
   getMyAssignedCases,
   updateCaseStatus,
   getDoctorDashboard,
+  completeCase,
 } = require("../controllers/doctor.controller");
 
-
-const { protect, authorize } = require("../middlewares/auth.middleware");
-
-// Create doctor profile
-
-
+const { protect } = require("../middlewares/auth.middleware");
+const { authorize } = require("../middlewares/role.middleware");
 
 // Dashboard
 router.get(
@@ -36,6 +33,14 @@ router.patch(
   protect,
   authorize("doctor"),
   updateCaseStatus
+);
+
+// Complete patient case
+router.patch(
+  "/cases/:caseId/complete",
+  protect,
+  authorize("doctor"),
+  completeCase
 );
 
 module.exports = router;

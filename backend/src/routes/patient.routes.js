@@ -7,10 +7,8 @@ const {
   completePatientCase,
 } = require("../controllers/patient.controller");
 
-const {
-  protect,
-  authorize,
-} = require("../middlewares/auth.middleware");
+const { protect } = require("../middlewares/auth.middleware");
+const { authorize } = require("../middlewares/role.middleware");
 
 // ===============================
 // Patient Case Creation

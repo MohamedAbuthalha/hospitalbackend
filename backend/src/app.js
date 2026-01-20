@@ -1,3 +1,7 @@
+const nurseRoutes = require("./routes/nurse.routes");
+console.log("NURSE ROUTES TYPE:", typeof nurseRoutes);
+
+
 const express = require("express");
 const cors = require("cors");
 
@@ -7,6 +11,7 @@ const doctorRoutes = require("./routes/doctor.routes");
 const triageRoutes = require("./routes/triage.routes");
 const assignmentRoutes = require("./routes/assignment.routes");
 const adminRoutes = require("./routes/admin.routes");
+
 
 
 const app = express();
@@ -41,6 +46,9 @@ app.use("/api/assign", assignmentRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/staff", require("./routes/staff.routes"));
 app.use("/api/admin", adminRoutes);
+app.use("/api/nurse", require("./routes/nurse.routes"));
+
+
 
 
 if (process.env.NODE_ENV !== "production") {

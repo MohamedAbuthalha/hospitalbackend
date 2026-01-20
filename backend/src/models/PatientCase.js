@@ -23,11 +23,26 @@ const patientCaseSchema = new mongoose.Schema(
       lowercase: true,
     },
 
-    assignedDoctor: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Doctor",
-      default: null,
-    },
+    vitals: {
+  bloodPressure: String,
+  heartRate: Number,
+  temperature: Number,
+  oxygenLevel: Number,
+  notes: String,
+  recordedBy: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "User",
+  },
+  recordedAt: Date,
+},
+
+
+   assignedDoctor: {
+  type: mongoose.Schema.Types.ObjectId,
+  ref: "DoctorProfile",
+  default: null,
+},
+
 
     status: {
       type: String,

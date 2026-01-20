@@ -51,13 +51,15 @@ exports.createDoctor = async (req, res) => {
     });
 
     // 4️⃣ Create doctor profile
-    const doctorProfile = await DoctorProfile.create({
-      user: user._id,
-      specialization,
-      experience,
-      department,
-      maxCases: maxCases || 0,
-    });
+   const doctorProfile = await DoctorProfile.create({
+  user: user._id,
+  name, // ✅ ADD THIS LINE
+  specialization,
+  experience,
+  department,
+  maxCases: maxCases || 5,
+});
+
 
     // 5️⃣ Link profile
     user.doctorProfile = doctorProfile._id;

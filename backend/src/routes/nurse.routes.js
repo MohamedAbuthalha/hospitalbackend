@@ -1,16 +1,17 @@
 const express = require("express");
 const router = express.Router();
 
-const assignmentController = require("../controllers/assignment.controller");
-
+const nurseController = require("../controllers/nurse.controller");
 const { protect } = require("../middlewares/auth.middleware");
 const { authorize } = require("../middlewares/role.middleware");
 
-router.post(
-  "/assign/:caseId",
-  protect,
-  authorize("admin"),
-  assignmentController.assignDoctorManually
-);
+// Auth
+router.use(protect);
+
+// Role
+router.use(authorize("nurse"));
+
+// Add vitals
+router.post("/cases/:caseId/vitals", nurseController.addVitals);
 
 module.exports = router;

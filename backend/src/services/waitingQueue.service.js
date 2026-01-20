@@ -1,5 +1,6 @@
 const PatientCase = require("../models/PatientCase");
-const Doctor = require("../models/Doctor");
+const DoctorProfile = require("../models/DoctorProfile");
+
 
 const { calculatePriority } = require("../utils/priority.util");
 

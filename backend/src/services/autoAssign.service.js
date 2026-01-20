@@ -1,10 +1,11 @@
 // services/autoAssign.service.js
-const Doctor = require("../models/Doctor");
+const DoctorProfile = require("../models/DoctorProfile");
 
 exports.autoAssignDoctor = async (patientCase) => {
-  // 1️⃣ Find doctors with matching specialization
-  const doctors = await Doctor.find({
+  // 1️⃣ Find doctors with matching specialization & on duty
+  const doctors = await DoctorProfile.find({
     specialization: patientCase.specialization,
+    isOnDuty: true,
   });
 
   // 2️⃣ Filter by capacity

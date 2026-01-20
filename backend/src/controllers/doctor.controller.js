@@ -159,3 +159,40 @@ exports.getDoctorDashboard = async (req, res) => {
 };
    
 
+
+
+exports.completeCase = async (req, res) => {
+  try {
+    const { caseId } = req.params;
+
+    const patientCase = await PatientCase.findById(caseId);
+    if (!patientCase) {
+      return res.status(404).json({ success: false, message: "Case not found" });
+    }
+
+    if (patientCase.status === "completed") {
+      return res.status(400).json({ success: false, message: "Already completed" });
+    }
+
+    // update case
+    patientCase.status = "completed";
+    await patientCase.save();
+
+    // update doctor workload
+    if (patientCase.assignedDoctor) {
+      const doctor = await DoctorProfile.findById(patientCase.assignedDoctor);
+      if (doctor && doctor.activeCases > 0) {
+        doctor.activeCases -= 1;
+        await doctor.save();
+      }
+    }
+
+    res.json({
+      success: true,
+      message: "Case completed",
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ success: false, message: "Server error" });
+  }
+};

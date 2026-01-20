@@ -1,5 +1,5 @@
 const PatientCase = require("../models/PatientCase");
-const Doctor = require("../models/Doctor");
+const DoctorProfile = require("../models/DoctorProfile");
 const { assignNextWaitingCase } = require("./waitingQueue.service");
 
 module.exports = async ({ caseId, doctorUserId }) => {
@@ -14,7 +14,7 @@ module.exports = async ({ caseId, doctorUserId }) => {
   }
 
   // 2️⃣ Fetch doctor profile
-  const doctorProfile = await Doctor.findOne({ user: doctorUserId });
+  const doctorProfile = await DoctorProfile.findOne({ user: doctorUserId });
   if (!doctorProfile) {
     throw new Error("Doctor profile not found");
   }
