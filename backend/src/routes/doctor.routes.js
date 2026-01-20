@@ -2,6 +2,7 @@ const express = require("express");
 const router = express.Router();
 
 const {
+  toggleDuty,
   getMyAssignedCases,
   updateCaseStatus,
   getDoctorDashboard,
@@ -43,4 +44,13 @@ router.patch(
   completeCase
 );
 
+// Toggle duty status ✅ FIXED
+router.patch(
+  "/duty",
+  protect,
+  authorize("doctor"),
+  toggleDuty
+);
+
 module.exports = router;
+console.log("DOCTOR CONTROLLER:", require("../controllers/doctor.controller"));

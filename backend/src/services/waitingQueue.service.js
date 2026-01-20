@@ -1,7 +1,5 @@
 const PatientCase = require("../models/PatientCase");
-const DoctorProfile = require("../models/DoctorProfile");
-
-
+const { autoAssignDoctor } = require("./autoAssign.service");
 const { calculatePriority } = require("../utils/priority.util");
 
 const assignNextWaitingCase = async (doctorProfile) => {
@@ -12,33 +10,21 @@ const assignNextWaitingCase = async (doctorProfile) => {
     return null;
   }
 
-  // Fetch waiting cases for specialization
+  // Fetch waiting cases
   const waitingCases = await PatientCase.find({
     status: "waiting",
     specialization: doctorProfile.specialization,
   });
 
-  if (!waitingCases.length) {
-    return null;
-  }
+  if (!waitingCases.length) return null;
 
-  // Sort using decision-based priority
+  // Sort by priority (your logic stays!)
   waitingCases.sort(
     (a, b) => calculatePriority(b) - calculatePriority(a)
   );
 
-  const selectedCase = waitingCases[0];
-
-  // Assign case
-  selectedCase.assignedDoctor = doctorProfile._id;
-  selectedCase.status = "assigned";
-  await selectedCase.save();
-
-  // Update doctor load
-  doctorProfile.activeCases += 1;
-  await doctorProfile.save();
-
-  return selectedCase;
+  // Reuse auto-assign logic
+  return await autoAssignDoctor(waitingCases[0]);
 };
 
 module.exports = { assignNextWaitingCase };

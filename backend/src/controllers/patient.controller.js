@@ -19,18 +19,20 @@ exports.createPatientCase = async (req, res) => {
     }
 
     // 1️⃣ Triage
-    const triageResult = analyzeSymptoms(symptoms);
+   const { analyzeSymptoms } = require("../services/triage.service");
 
-    // 2️⃣ Create patient case FIRST
-    const patientCase = await PatientCase.create({
-      name,
-      age,
-      gender,
-      symptoms,
-      severity: triageResult.severity,
-      specialization: triageResult.specialization,
-      status: "waiting",
-    });
+const triage = analyzeSymptoms(symptoms);
+
+const patientCase = await PatientCase.create({
+  name,
+  age,
+  gender,
+  symptoms,
+  severity: triage.severity,
+  specialization: triage.specialization,
+  status: "waiting",
+});
+
 
     // 3️⃣ Auto assign doctor
     const assignedDoctor = await autoAssignDoctor(patientCase);

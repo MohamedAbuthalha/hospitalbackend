@@ -1,13 +1,48 @@
 const PatientCase = require("../models/PatientCase");
-const Doctor = require("../models/Doctor");
-const User = require("../models/User");
+const DoctorProfile = require("../models/DoctorProfile");
+const autoAssignNextCase = require("../services/autoAssignNextCase.service");
+
+
+/**
+ * PATCH /api/doctors/duty
+ * Toggle doctor on/off duty
+ */
+exports.toggleDuty = async (req, res) => {
+  try {
+    const doctorProfile = await DoctorProfile.findOne({
+      user: req.user.id,
+    });
+
+    if (!doctorProfile) {
+      return res.status(404).json({
+        success: false,
+        message: "Doctor profile not found",
+      });
+    }
+
+    doctorProfile.isOnDuty = !doctorProfile.isOnDuty;
+    await doctorProfile.save();
+
+    res.status(200).json({
+      success: true,
+      message: `Doctor is now ${doctorProfile.isOnDuty ? "ON" : "OFF"} duty`,
+      isOnDuty: doctorProfile.isOnDuty,
+    });
+  } catch (error) {
+    console.error("Toggle duty error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to update duty status",
+    });
+  }
+};
+
 
 /**
  * GET /api/doctors/cases/my
  */
 exports.getMyAssignedCases = async (req, res) => {
   try {
-    // Role safety
     if (req.user.role !== "doctor") {
       return res.status(403).json({
         success: false,
@@ -15,7 +50,11 @@ exports.getMyAssignedCases = async (req, res) => {
       });
     }
 
-    if (!req.user.doctorProfile) {
+    const doctorProfile = await DoctorProfile.findOne({
+      user: req.user.id,
+    });
+
+    if (!doctorProfile) {
       return res.status(400).json({
         success: false,
         message: "Doctor profile not linked",
@@ -23,16 +62,14 @@ exports.getMyAssignedCases = async (req, res) => {
     }
 
     const cases = await PatientCase.find({
-      assignedDoctor: req.user.doctorProfile,
-    })
-      .sort({ createdAt: -1 });
+      assignedDoctor: doctorProfile._id,
+    }).sort({ createdAt: -1 });
 
     res.status(200).json({
       success: true,
       count: cases.length,
       data: cases,
     });
-
   } catch (error) {
     res.status(500).json({
       success: false,
@@ -57,6 +94,17 @@ exports.updateCaseStatus = async (req, res) => {
       });
     }
 
+    const doctorProfile = await DoctorProfile.findOne({
+      user: req.user.id,
+    });
+
+    if (!doctorProfile) {
+      return res.status(404).json({
+        success: false,
+        message: "Doctor profile not found",
+      });
+    }
+
     const patientCase = await PatientCase.findById(caseId);
 
     if (!patientCase) {
@@ -66,41 +114,33 @@ exports.updateCaseStatus = async (req, res) => {
       });
     }
 
-    if (
-      patientCase.assignedDoctor.toString() !==
-      req.user.doctorProfile.toString()
-    ) {
+    if (patientCase.assignedDoctor.toString() !== doctorProfile._id.toString()) {
       return res.status(403).json({
         success: false,
         message: "Not authorized",
       });
     }
 
-    // Prevent duplicate updates
-    if (patientCase.status === status) {
-      return res.status(400).json({
-        success: false,
-        message: "Status already updated",
-      });
-    }
-
     patientCase.status = status;
     await patientCase.save();
 
-    // 🔥 Reduce doctor workload when completed
     if (status === "completed") {
-      await Doctor.findByIdAndUpdate(
-        req.user.doctorProfile,
-        { $inc: { activeCases: -1 } }
-      );
-    }
+  // Prevent negative values
+  doctorProfile.activeCases = Math.max(
+    doctorProfile.activeCases - 1,
+    0
+  );
+  await doctorProfile.save();
+
+  // 🔥 Auto assign next waiting case
+  await autoAssignNextCase(doctorProfile);
+}
 
     res.status(200).json({
       success: true,
-      message: "Case status updated successfully",
+      message: "Case status updated",
       data: patientCase,
     });
-
   } catch (error) {
     res.status(500).json({
       success: false,
@@ -122,7 +162,11 @@ exports.getDoctorDashboard = async (req, res) => {
       });
     }
 
-    if (!req.user.doctorProfile) {
+    const doctorProfile = await DoctorProfile.findOne({
+      user: req.user.id,
+    });
+
+    if (!doctorProfile) {
       return res.status(400).json({
         success: false,
         message: "Doctor profile not linked",
@@ -130,11 +174,8 @@ exports.getDoctorDashboard = async (req, res) => {
     }
 
     const cases = await PatientCase.find({
-      assignedDoctor: req.user.doctorProfile,
-    }).sort({
-      severity: -1,
-      createdAt: -1,
-    });
+      assignedDoctor: doctorProfile._id,
+    }).sort({ createdAt: -1 });
 
     const stats = {
       total: cases.length,
@@ -148,51 +189,63 @@ exports.getDoctorDashboard = async (req, res) => {
       stats,
       cases,
     });
-
   } catch (error) {
-    console.error("Dashboard error:", error);
     res.status(500).json({
       success: false,
       message: "Failed to load dashboard",
     });
   }
 };
-   
 
-
-
+/**
+ * PATCH /api/doctors/cases/:caseId/complete
+ */
 exports.completeCase = async (req, res) => {
   try {
     const { caseId } = req.params;
 
+    const doctorProfile = await DoctorProfile.findOne({
+      user: req.user.id,
+    });
+
+    if (!doctorProfile) {
+      return res.status(404).json({
+        success: false,
+        message: "Doctor profile not found",
+      });
+    }
+
     const patientCase = await PatientCase.findById(caseId);
+
     if (!patientCase) {
-      return res.status(404).json({ success: false, message: "Case not found" });
+      return res.status(404).json({
+        success: false,
+        message: "Case not found",
+      });
     }
 
-    if (patientCase.status === "completed") {
-      return res.status(400).json({ success: false, message: "Already completed" });
+    if (patientCase.assignedDoctor.toString() !== doctorProfile._id.toString()) {
+      return res.status(403).json({
+        success: false,
+        message: "Not authorized",
+      });
     }
 
-    // update case
     patientCase.status = "completed";
     await patientCase.save();
 
-    // update doctor workload
-    if (patientCase.assignedDoctor) {
-      const doctor = await DoctorProfile.findById(patientCase.assignedDoctor);
-      if (doctor && doctor.activeCases > 0) {
-        doctor.activeCases -= 1;
-        await doctor.save();
-      }
-    }
+    doctorProfile.activeCases -= 1;
+    await doctorProfile.save();
 
-    res.json({
+    res.status(200).json({
       success: true,
-      message: "Case completed",
+      message: "Case completed successfully",
+      data: patientCase,
     });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ success: false, message: "Server error" });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Failed to complete case",
+    });
   }
 };
