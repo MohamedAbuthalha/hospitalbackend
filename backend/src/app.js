@@ -8,6 +8,7 @@ const triageRoutes = require("./routes/triage.routes");
 const assignmentRoutes = require("./routes/assignment.routes");
 const adminRoutes = require("./routes/admin.routes");
 
+
 const app = express();
 
 /* -------------------- MIDDLEWARE -------------------- */
@@ -39,7 +40,7 @@ app.use("/api/triage", triageRoutes);
 app.use("/api/assign", assignmentRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/staff", require("./routes/staff.routes"));
-
+app.use("/api/admin", adminRoutes);
 
 
 if (process.env.NODE_ENV !== "production") {

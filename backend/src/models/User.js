@@ -24,11 +24,21 @@ const userSchema = new mongoose.Schema(
       minlength: 6,
       select: false,
     },
-role: {
+
+
+    role: {
   type: String,
-  enum: ["admin", "doctor", "nurse", "lab", "pharmacist", "ward"],
+  enum: [
+    "admin",
+    "doctor",
+    "nurse",
+    "lab",
+    "ward",
+    "pharmacist"
+  ],
   required: true,
 },
+
 
 
 

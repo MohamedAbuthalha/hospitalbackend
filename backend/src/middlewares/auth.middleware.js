@@ -1,6 +1,9 @@
 const jwt = require("jsonwebtoken");
 const User = require("../models/User");
 
+/**
+ * AUTHENTICATION MIDDLEWARE
+ */
 exports.protect = async (req, res, next) => {
   try {
     let token;
@@ -21,7 +24,7 @@ exports.protect = async (req, res, next) => {
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
-    const user = await User.findById(decoded.id);
+    const user = await User.findById(decoded.id).select("-password");
 
     if (!user || !user.isActive) {
       return res.status(401).json({
@@ -40,6 +43,9 @@ exports.protect = async (req, res, next) => {
   }
 };
 
+/**
+ * ROLE AUTHORIZATION
+ */
 exports.authorize = (...roles) => {
   return (req, res, next) => {
     if (!req.user || !roles.includes(req.user.role)) {
